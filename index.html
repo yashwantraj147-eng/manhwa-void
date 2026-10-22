@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MANHWA VOID — Webtoon Stream & Hunter Reader</title>
+    <meta name="description" content="Infinite vertical webtoon reader, cinematic manhwa stream, and Hunter RPG status library." />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/style.css" />
+    <!-- JSZip for CBZ and ZIP Extraction -->
+    <script src="/libs/jszip.min.js"></script>
+  </head>
+  <body class="theme-dark">
+    <!-- Ambient Reactive Background Glow -->
+    <div id="ambientBackdrop" class="ambient-backdrop"></div>
+    <div id="particleCanvasContainer" class="particles-container"></div>
+
+    <!-- App Container -->
+    <div id="app" class="app-root">
+      <!-- Top Navigation Bar -->
+      <header id="siteHeader" class="site-header">
+        <div class="header-inner">
+          <div class="header-left">
+            <button id="brandLogoBtn" class="brand-logo-btn" aria-label="Go to Catalog">
+              <span class="portal-emblem">
+                <span class="portal-ring"></span>
+                <span class="portal-core">⚡</span>
+              </span>
+              <div class="brand-text">
+                <span class="brand-title">MANHWA<span class="brand-void">VOID</span></span>
+                <span class="brand-sub">HUNTER STREAM</span>
+              </div>
+            </button>
+          </div>
+
+          <div class="header-center">
+            <div class="search-bar-wrapper">
+              <span class="search-icon-slot" id="searchIconSlot"></span>
+              <input 
+                type="text" 
+                id="globalSearchInput" 
+                class="global-search-input" 
+                placeholder="Search manhwa, hunter, author, genre... (Press '/' to search)" 
+                autocomplete="off"
+              />
+              <div id="searchDropdown" class="search-dropdown hidden"></div>
+            </div>
+          </div>
+
+          <div class="header-right">
+            <!-- Import Chapter Button -->
+            <button id="openImportModalBtn" class="nav-action-btn" title="Import CBZ, ZIP, or Image Folder">
+              <span id="importIconSlot">📁</span>
+              <span class="btn-label-desktop">Import</span>
+            </button>
+
+            <!-- Sound FX Toggle -->
+            <button id="soundToggleBtn" class="nav-action-btn" title="Toggle Sound FX / Ambient Audio">
+              <span id="soundIconSlot"></span>
+              <span class="btn-label-desktop">Audio</span>
+            </button>
+
+            <!-- Hunter Status Badge -->
+            <button id="hunterStatusBtn" class="hunter-status-pill" title="View Hunter License & Stats">
+              <span class="hunter-rank-badge rank-s" id="navRankBadge">S-RANK</span>
+              <div class="hunter-info-mini">
+                <span class="hunter-name-mini" id="navHunterName">Jin-Woo</span>
+                <span class="hunter-level-mini" id="navHunterLevel">Lv. 14</span>
+              </div>
+            </button>
+
+            <!-- Library Drawer Toggle -->
+            <button id="libraryDrawerBtn" class="nav-action-btn primary-glow-btn" title="Open My Library">
+              <span id="bookmarkIconSlot"></span>
+              <span class="btn-label-desktop">Library</span>
+              <span id="libraryCountBadge" class="library-count-badge">2</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Content Area -->
+      <main id="mainContainer" class="main-container">
+        <!-- VIEW 1: CATALOG & DISCOVERY VIEW -->
+        <section id="catalogView" class="view-section active">
+          <!-- Featured Hero Banner Carousel -->
+          <div id="heroBannerSection" class="hero-banner-section">
+            <!-- Injected by HeroBanner.js -->
+          </div>
+
+          <!-- Hunter Daily Quests Quick Banner -->
+          <div class="quest-tracker-banner" id="questTrackerBanner">
+            <!-- Injected by main.js -->
+          </div>
+
+          <!-- Catalog Toolbar (Filter Pills, Sort, View Layout) -->
+          <div class="catalog-toolbar">
+            <div class="source-mode-switcher" id="sourceModeSwitcher">
+              <button class="source-tab-btn active" data-source="originals">⚡ Void Originals</button>
+              <button class="source-tab-btn" data-source="mangadex">🌐 MangaDex Live</button>
+              <button class="source-tab-btn" data-source="imported">📁 My Imported</button>
+            </div>
+
+            <div class="genre-pills-list" id="genrePillsList">
+              <button class="genre-pill active" data-genre="all">🔥 All Series</button>
+              <button class="genre-pill" data-genre="Action">⚔️ Action & Hunter</button>
+              <button class="genre-pill" data-genre="Murim">🏮 Murim & Wuxia</button>
+              <button class="genre-pill" data-genre="Romance">👑 Villainess & Royalty</button>
+              <button class="genre-pill" data-genre="Tower">🏰 Tower Climber</button>
+              <button class="genre-pill" data-genre="bookmarks">⭐ Bookmarked</button>
+            </div>
+
+            <div class="toolbar-controls">
+              <div class="sort-select-wrapper">
+                <select id="catalogSortSelect" class="styled-select" aria-label="Sort manhwa by">
+                  <option value="popularity">🔥 Most Popular</option>
+                  <option value="rating">⭐ Highest Rating</option>
+                  <option value="title">🔤 Title A-Z</option>
+                  <option value="views">👁️ Most Views</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Manhwa Cards Grid -->
+          <div id="manhwaGrid" class="manhwa-cards-grid">
+            <!-- Injected by main.js -->
+          </div>
+        </section>
+
+        <!-- VIEW 2: INTERACTIVE WEBTOON VERTICAL READER VIEW -->
+        <section id="readerView" class="view-section hidden">
+          <!-- Sticky Reader Top HUD -->
+          <div id="readerTopHud" class="reader-top-hud">
+            <div class="reader-hud-inner">
+              <div class="reader-hud-left">
+                <button id="exitReaderBtn" class="hud-btn back-btn" title="Exit to Catalog">
+                  <span id="readerBackIconSlot"></span>
+                  <span>Catalog</span>
+                </button>
+                <div class="reader-title-group">
+                  <h2 id="readerManhwaTitle" class="reader-manhwa-title">The Necromancer Hunter</h2>
+                  <div class="reader-chapter-dropdown-wrapper">
+                    <select id="readerChapterSelect" class="styled-select chapter-select"></select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Center Reading Progress -->
+              <div class="reader-hud-center">
+                <div class="progress-bar-track">
+                  <div id="readingProgressBar" class="progress-bar-fill" style="width: 0%;"></div>
+                </div>
+                <span id="readingProgressText" class="progress-readout">0%</span>
+              </div>
+
+              <!-- Right Controls -->
+              <div class="reader-hud-right">
+                <!-- Auto-Scroll Toggle -->
+                <button id="autoScrollBtn" class="hud-btn" title="Auto-Scroll (Spacebar)">
+                  <span id="autoScrollIconSlot"></span>
+                  <span id="autoScrollLabel">Auto-Scroll</span>
+                </button>
+                <select id="autoScrollSpeedSelect" class="styled-select speed-select" title="Scroll Speed">
+                  <option value="1">1x</option>
+                  <option value="2" selected>2x</option>
+                  <option value="3.5">3.5x</option>
+                </select>
+
+                <!-- Reader Settings Button -->
+                <button id="readerSettingsBtn" class="hud-btn icon-only" title="Reader Display Settings">
+                  <span id="settingsIconSlot"></span>
+                </button>
+
+                <!-- Fullscreen Toggle -->
+                <button id="fullscreenBtn" class="hud-btn icon-only" title="Toggle Fullscreen">
+                  <span id="fullscreenIconSlot"></span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Reader Settings Popover Drawer -->
+            <div id="readerSettingsPopover" class="reader-settings-popover hidden">
+              <div class="settings-popover-title">Reading Mode Settings</div>
+              <div class="setting-item">
+                <label>Strip Width:</label>
+                <div class="segmented-control" id="stripWidthControl">
+                  <button data-width="slim">Slim</button>
+                  <button data-width="standard" class="active">Standard</button>
+                  <button data-width="wide">Wide</button>
+                </div>
+              </div>
+              <div class="setting-item">
+                <label>Filter Theme:</label>
+                <div class="segmented-control" id="readingFilterControl">
+                  <button data-filter="normal" class="active">Default</button>
+                  <button data-filter="night">Night Dim</button>
+                  <button data-filter="warm">Warm Sepia</button>
+                  <button data-filter="oled">OLED Black</button>
+                </div>
+              </div>
+              <div class="setting-item toggle-row">
+                <label for="ambientGlowToggle">Ambient Reactive Aura:</label>
+                <input type="checkbox" id="ambientGlowToggle" checked />
+              </div>
+            </div>
+          </div>
+
+          <!-- Vertical Continuous Webtoon Scroll Area -->
+          <div id="readerStripWrapper" class="reader-strip-wrapper width-standard">
+            <!-- Ambient Side Lighting Panels -->
+            <div id="readerAmbientGlow" class="reader-ambient-glow"></div>
+
+            <div id="readerStripContent" class="reader-strip-content">
+              <!-- Panels injected by ReaderView.js -->
+            </div>
+
+            <!-- Chapter Reactions & Live Interaction Section -->
+            <div class="chapter-interactive-footer" id="chapterInteractiveFooter">
+              <div class="reaction-buttons-bar">
+                <span class="reactions-title">React to this Chapter:</span>
+                <div class="reaction-pills" id="reactionPillsContainer">
+                  <button class="reaction-btn" data-reaction="fire">🔥 <span class="react-count">8.4K</span></button>
+                  <button class="reaction-btn" data-reaction="skull">💀 <span class="react-count">4.1K</span></button>
+                  <button class="reaction-btn" data-reaction="lightning">⚡ <span class="react-count">9.8K</span></button>
+                  <button class="reaction-btn" data-reaction="mindblown">🤯 <span class="react-count">3.2K</span></button>
+                  <button class="reaction-btn" data-reaction="heart">💖 <span class="react-count">12.6K</span></button>
+                </div>
+              </div>
+
+              <!-- Comments Section -->
+              <div class="reader-comments-section">
+                <div class="comments-header">
+                  <h4 class="comments-heading">💬 Awakened Reader Discussions</h4>
+                  <span class="comments-count-pill" id="commentsCountPill">1,284 Comments</span>
+                </div>
+
+                <div class="new-comment-box">
+                  <input type="text" id="newCommentInput" class="new-comment-input" placeholder="Join the discussion... (e.g. Min-Hyuk's shadow army is too OP!)" />
+                  <button id="postCommentBtn" class="post-comment-btn">Post</button>
+                </div>
+
+                <div class="comments-list" id="commentsList">
+                  <!-- Injected comments -->
+                </div>
+              </div>
+
+              <!-- Bottom Chapter Navigation -->
+              <div class="bottom-chapter-nav">
+                <button id="prevChapterBottomBtn" class="hud-btn"><span id="prevBottomIconSlot"></span> Previous Chapter</button>
+                <button id="backToTopBtn" class="hud-btn">↑ Back to Top</button>
+                <button id="nextChapterBottomBtn" class="hud-btn primary-glow-btn">Next Chapter <span id="nextBottomIconSlot"></span></button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- MODAL: MANHWA DETAILS MODAL -->
+      <div id="detailsModal" class="modal-backdrop hidden">
+        <div class="modal-card">
+          <button id="closeDetailsModalBtn" class="modal-close-btn" aria-label="Close Modal">✕</button>
+          <div id="detailsModalContent" class="modal-inner-content">
+            <!-- Injected by DetailModal.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- DRAWER: HUNTER LICENSE & MY LIBRARY DRAWER -->
+      <div id="libraryDrawer" class="drawer-backdrop hidden">
+        <aside class="drawer-panel">
+          <div class="drawer-header">
+            <div class="drawer-title-group">
+              <h3 class="drawer-title">HUNTER REGISTRATION</h3>
+              <span class="drawer-subtitle">Awakened Reader License & Vault</span>
+            </div>
+            <button id="closeLibraryDrawerBtn" class="modal-close-btn" aria-label="Close Drawer">✕</button>
+          </div>
+
+          <div class="drawer-scroll-body">
+            <!-- Holographic Hunter License Card -->
+            <div class="hunter-license-card" id="hunterLicenseCard">
+              <div class="license-glare"></div>
+              <div class="license-top">
+                <div class="license-photo">
+                  <img src="/covers/shadow_monarch.jpg" alt="Hunter Avatar" id="hunterAvatarImg" />
+                  <span class="license-rank-stamp" id="licenseRankStamp">S</span>
+                </div>
+                <div class="license-details">
+                  <div class="license-field-title">HUNTER ID #094-VOID</div>
+                  <h4 class="license-name" id="licenseHunterName">Jin-Woo</h4>
+                  <div class="license-class" id="licenseHunterTitle">Shadow Sovereign</div>
+                  <div class="license-stat-line">
+                    <span>Rank: <strong id="licenseRankText">S-Rank</strong></span>
+                    <span>Level: <strong id="licenseLevelText">14</strong></span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- EXP Bar -->
+              <div class="license-exp-container">
+                <div class="license-exp-labels">
+                  <span>EXP Progress</span>
+                  <span id="licenseExpNumbers">340 / 500 XP</span>
+                </div>
+                <div class="license-exp-track">
+                  <div class="license-exp-fill" id="licenseExpFill" style="width: 68%;"></div>
+                </div>
+              </div>
+
+              <div class="license-stats-row">
+                <div class="stat-box">
+                  <span class="stat-number" id="statsChaptersCount">28</span>
+                  <span class="stat-label">Chapters Read</span>
+                </div>
+                <div class="stat-box">
+                  <span class="stat-number" id="statsBookmarksCount">2</span>
+                  <span class="stat-label">In Library</span>
+                </div>
+                <div class="stat-box">
+                  <span class="stat-number">142m</span>
+                  <span class="stat-label">Read Time</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Daily Quests in Drawer -->
+            <div class="drawer-section">
+              <h4 class="drawer-section-heading">⚡ Daily System Quests</h4>
+              <div class="drawer-quests-list" id="drawerQuestsList">
+                <!-- Injected daily quests -->
+              </div>
+            </div>
+
+            <!-- Bookmarked Series Shelf -->
+            <div class="drawer-section">
+              <div class="drawer-shelf-header">
+                <h4 class="drawer-section-heading">📚 My Bookmarked Series</h4>
+                <span class="shelf-count" id="shelfCountText">2 Titles</span>
+              </div>
+              <div class="drawer-bookmarks-list" id="drawerBookmarksList">
+                <!-- Injected bookmarked items -->
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <!-- MODAL: LOCAL CHAPTER & CBZ IMPORTER -->
+      <div id="importModal" class="modal-backdrop hidden">
+        <div class="modal-card import-modal-card">
+          <button id="closeImportModalBtn" class="modal-close-btn" aria-label="Close Modal">✕</button>
+          <div class="import-modal-content">
+            <div class="import-modal-header">
+              <div class="portal-emblem">📁</div>
+              <div>
+                <h3 class="import-modal-title">AWAKENED CHAPTER IMPORTER</h3>
+                <p class="import-modal-desc">Drag & drop your downloaded manhwa (.cbz, .zip, or image folders) to read instantly!</p>
+              </div>
+            </div>
+
+            <!-- Drag & Drop Zone -->
+            <div id="importDropZone" class="import-drop-zone">
+              <div class="drop-zone-icon">📥</div>
+              <h4 class="drop-zone-title">Drop CBZ, ZIP, or Webtoon Images here</h4>
+              <p class="drop-zone-hint">Supports .cbz, .zip archives, or folder of images (JPG, PNG, WebP)</p>
+              
+              <div class="drop-zone-buttons">
+                <label class="hud-btn primary-glow-btn import-btn-label">
+                  📦 Select .CBZ / .ZIP
+                  <input type="file" id="cbzFileInput" accept=".cbz,.zip" hidden />
+                </label>
+                <label class="hud-btn import-btn-label">
+                  📁 Select Folder
+                  <input type="file" id="folderFileInput" webkitdirectory directory multiple hidden />
+                </label>
+                <label class="hud-btn import-btn-label">
+                  🖼️ Select Images
+                  <input type="file" id="imagesFileInput" accept="image/*" multiple hidden />
+                </label>
+              </div>
+
+              <!-- Quick Demo Chapter Testing Actions -->
+              <div class="import-demo-box">
+                <button type="button" id="loadDemoChapterBtn" class="import-demo-btn">
+                  ⚡ Load Demo Chapter (Solo Leveling Ch. 1)
+                </button>
+                <a href="/sample_chapters/Solo_Leveling_Ch01.cbz" download="Solo_Leveling_Ch01.cbz" class="import-download-sample-link" title="Download sample .cbz file">
+                  ⬇️ Download Sample .CBZ
+                </a>
+              </div>
+            </div>
+
+            <!-- Loading / Progress Bar -->
+            <div id="importProgressBox" class="import-progress-box hidden">
+              <div class="progress-labels">
+                <span id="importStatusText">Extracting chapter panels...</span>
+                <span id="importProgressPercent">0%</span>
+              </div>
+              <div class="progress-bar-track">
+                <div id="importProgressBar" class="progress-bar-fill" style="width: 0%;"></div>
+              </div>
+            </div>
+
+            <!-- Preview Card -->
+            <div id="importPreviewCard" class="import-preview-card hidden">
+              <img id="importPreviewThumb" src="" alt="Thumbnail" class="import-thumb" />
+              <div class="import-preview-info">
+                <h4 id="importPreviewTitle" class="import-preview-title">Series Title</h4>
+                <span id="importPreviewChapter" class="import-preview-chapter">Chapter 1</span>
+                <span id="importPreviewPages" class="import-preview-pages">0 Pages</span>
+              </div>
+              <button id="importReadNowBtn" class="hero-read-btn primary-glow-btn">
+                📖 Read in Webtoon Strip
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Notification Toast -->
+      <div id="systemToast" class="system-toast hidden">
+        <span class="toast-icon">⚡</span>
+        <div class="toast-message-box">
+          <div class="toast-title" id="toastTitle">SYSTEM NOTIFICATION</div>
+          <div class="toast-desc" id="toastDesc">Daily quest completed!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JSZip Archive Parser Library -->
+    <script src="/libs/jszip.min.js"></script>
+
+    <!-- Application Script -->
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

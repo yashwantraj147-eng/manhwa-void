@@ -1,0 +1,17 @@
+{
+  "name": "mahnwa-foid",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "devDependencies": {
+    "vite": "^8.3.4"
+  },
+  "dependencies": {
+    "jszip": "^3.10.2",
+    "lucide": "^1.61.0"
+  }
+}
